@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Good Vibes receipt</title>
+  <!-- Good Vibes POS print page (STAGE_2_PLAN.md S2-9 item 68b, owner 26 Oct).
+       Master copy: POS/shell/print_index.html in the main repository; the owner
+       copies it to the public repo li-shell/print as index.html
+       (https://li-shell.github.io/print/, no custom domain).
+       Why a separate site: Chrome runs a different site in its own process, so
+       a print dialog left open here blocks only this tab - never the POS, the
+       shell or another Apps Script app (the old print window froze them all).
+       The POS opens this page in a new tab with the receipt text after the #
+       (the part of an address that is never sent to a server). This page shows
+       it, opens the print dialog and closes itself after printing. It holds no
+       data, sends nothing anywhere and loads nothing else. -->
+  <style>
+    /* ---------------- Settings ---------------- */
+    :root { --receipt-font-size: 12px; }
+    body { margin: 0; padding: 12px; background: #fff; color: #000; font-family: system-ui, sans-serif; }
+    pre { font-family: Consolas, 'Lucida Console', Menlo, Monaco, 'Courier New', monospace; font-size: var(--receipt-font-size);
+          line-height: 1.25; white-space: pre; margin: 0; }
+    #note { font-size: 12px; color: #475569; margin-bottom: 10px; }
+    @media print { #note { display: none; } body { padding: 0; } }
+  </style>
+</head>
+<body>
+  <div id="note">Printing… This tab closes by itself after printing. If it does not, close it.</div>
+  <pre id="receipt"></pre>
+<script>
+// ---------------- Settings ----------------
+const PRINT_DELAY_MS = 300;        // the page draws first, then the print dialog opens
+const CLOSE_AFTER_PRINT = true;    // close this tab once the dialog is finished (printed or cancelled)
+
+let text = '';
+try { text = decodeURIComponent(location.hash.slice(1)); } catch (e) { text = ''; }
+// The receipt is not kept in the address bar or the tab's history.
+try { history.replaceState(null, '', location.pathname); } catch (e) { /* keep going */ }
+document.getElementById('receipt').textContent = text || 'No receipt was given to this page.';
+if (text) {
+  window.addEventListener('afterprint', () => { if (CLOSE_AFTER_PRINT) window.close(); });
+  setTimeout(() => window.print(), PRINT_DELAY_MS);
+}
+</script>
+</body>
+</html>
